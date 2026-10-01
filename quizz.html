@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Petualangan Kata Juara - Kuis Bahasa Indonesia Kelas 1 SD</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fredoka & Quicksand -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@600;700;800&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    * {
+      font-family: 'Fredoka', 'Quicksand', system-ui, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(1.5deg); }
+    }
+    .animate-float {
+      animation: floatSlow 3.5s ease-in-out infinite;
+    }
+
+    /* 3D Tactile Kid-Friendly Buttons */
+    .btn-3d {
+      transition: all 0.1s ease;
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.16);
+    }
+    .btn-3d:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    /* =========================================================
+       CRITICAL FIX: MEDIA PRINT SPECIFICATION FOR LKPD WORKSHEET
+       ========================================================= */
+    @page {
+      size: A4 portrait;
+      margin: 8mm 10mm 8mm 10mm;
+    }
+
+    @media print {
+      /* Sembunyikan paparan web dan butang tidak berkaitan semasa cetakan */
+      body, html {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      body * {
+        visibility: hidden !important;
+      }
+
+      /* Tampilkan hanya kawasan cetakan LKPD */
+      #lkpdModal,
+      #lkpdPrintArea, 
+      #lkpdPrintArea * {
+        visibility: visible !important;
+      }
+
+      #lkpdModal {
+        position: static !important;
+        display: block !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        backdrop-filter: none !important;
+      }
+
+      #lkpdModalContainer {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        height: auto !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      #lkpdPrintArea {
+        position: static !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+      }
+
+      .no-print,
+      header,
+      footer,
+      #lobbyView,
+      #gameView,
+      #resultsView {
+        display: none !important;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .lkpd-task-card, table, tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-amber-50 text-slate-800 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-pink-300">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-4 border-amber-300 shadow-sm px-4 py-2.5">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="goToLobby()">
+        <div class="w-12 h-12 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-md transform rotate-2">
+          <span class="text-2xl">🦁</span>
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            Petualangan Kata!
+          </h1>
+          <p class="text-xs text-slate-500 font-semibold hidden sm:block">Kuis Interaktif Bahasa Indonesia Kelas 1 SD</p>
+        </div>
+      </div>
+
+      <!-- Action items: Score, sound toggle, & LKPD button -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Live Stars / Score Counter -->
+        <div class="flex items-center gap-1.5 bg-amber-100 border-2 border-amber-300 px-3 py-1 rounded-full shadow-inner">
+          <span class="text-xl">⭐</span>
+          <span id="globalScoreText" class="font-bold text-amber-800 text-lg sm:text-xl">0</span>
+        </div>
+
+        <!-- Sound Button -->
+        <button id="soundToggleBtn" onclick="toggleAudio()" class="w-10 h-10 rounded-xl bg-violet-100 hover:bg-violet-200 border-2 border-violet-300 text-violet-700 flex items-center justify-center font-bold text-lg transition" title="Suara Musik / Nada">
+          🔊
+        </button>
+
+        <!-- LKPD Printable Button -->
+        <button onclick="openLKPDModal()" class="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 sm:px-4 py-1.5 rounded-xl shadow-md btn-3d text-xs sm:text-sm border-b-4 border-emerald-700">
+          <span>📄</span> <span class="hidden sm:inline">Cetak</span> LKPD
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Game & Interface Container -->
+  <main class="max-w-5xl mx-auto w-full px-3 py-4 flex-grow flex flex-col items-center justify-center">
+
+    <!-- 1. LOBBY VIEW / MENU PILIHAN KUIS -->
+    <section id="lobbyView" class="w-full max-w-4xl py-2 flex flex-col items-center text-center">
+      <!-- Mascot Hero -->
+      <div class="inline-block animate-float mb-2">
+        <div class="w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-b from-yellow-300 to-amber-400 rounded-3xl p-3 shadow-xl border-4 border-white flex items-center justify-center text-5xl">
+          🦊
+        </div>
+      </div>
+      <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-800 mb-1">
+        Ayo Bermain & Belajar Kata!
+      </h2>
+      <p class="text-sm sm:text-base text-slate-600 max-w-lg mb-6 font-medium">
+        Pilih kuis seru di bawah ini. Selesaikan soal dan kumpulkan semua bintang emasnya!
+      </p>
+
+      <!-- 5 Quiz Modes Grid + Mixed Mode -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full px-2">
+        
+        <!-- Mode 1: Pasangkan Gambar -->
+        <div onclick="startQuizMode('match_picture')" class="cursor-pointer bg-gradient-to-b from-rose-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 border-4 border-pink-400 rounded-3xl p-5 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-4xl">🎨</span>
+            <span class="bg-pink-500 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Mode 1</span>
+          </div>
+          <h3 class="text-xl font-bold text-pink-700">Pasangkan Gambar</h3>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1">Cocokkan gambar asli dengan nama kata yang sesuai.</p>
+          <div class="mt-4 flex items-center justify-between text-pink-600 font-bold text-sm">
+            <span>Mulai Main</span>
+            <span>➔</span>
+          </div>
+        </div>
+
+        <!-- Mode 2: Suku Kata -->
+        <div onclick="startQuizMode('syllable')" class="cursor-pointer bg-gradient-to-b from-sky-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-4 border-sky-400 rounded-3xl p-5 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-4xl">🧩</span>
+            <span class="bg-sky-500 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Mode 2</span>
+          </div>
+          <h3 class="text-xl font-bold text-sky-700">Tebak Suku Kata</h3>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1">Lengkapi potongan suku kata yang hilang (bo - [la], ku - [da]).</p>
+          <div class="mt-4 flex items-center justify-between text-sky-600 font-bold text-sm">
+            <span>Mulai Main</span>
+            <span>➔</span>
+          </div>
+        </div>
+
+        <!-- Mode 3: Tebak Huruf Vokal -->
+        <div onclick="startQuizMode('vowel_pick')" class="cursor-pointer bg-gradient-to-b from-amber-50 to-yellow-100 hover:from-yellow-100 hover:to-yellow-200 border-4 border-yellow-400 rounded-3xl p-5 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-4xl">🔤</span>
+            <span class="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Mode 3</span>
+          </div>
+          <h3 class="text-xl font-bold text-amber-800">Tebak Huruf Vokal</h3>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1">Cari dan pilih huruf vokal (A, I, U, E, O) pada berbagai kata.</p>
+          <div class="mt-4 flex items-center justify-between text-amber-700 font-bold text-sm">
+            <span>Mulai Main</span>
+            <span>➔</span>
+          </div>
+        </div>
+
+        <!-- Mode 4: Jumlah Huruf Vokal -->
+        <div onclick="startQuizMode('count_vowel')" class="cursor-pointer bg-gradient-to-b from-emerald-50 to-green-100 hover:from-green-100 hover:to-green-200 border-4 border-emerald-400 rounded-3xl p-5 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-4xl">🔢</span>
+            <span class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Mode 4</span>
+          </div>
+          <h3 class="text-xl font-bold text-emerald-800">Jumlah Huruf Vokal</h3>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1">Hitung berapa banyak huruf vokal pada kata yang ditampilkan.</p>
+          <div class="mt-4 flex items-center justify-between text-emerald-700 font-bold text-sm">
+            <span>Mulai Main</span>
+            <span>➔</span>
+          </div>
+        </div>
+
+        <!-- Mode 5: Jumlah Huruf Konsonan -->
+        <div onclick="startQuizMode('count_consonant')" class="cursor-pointer bg-gradient-to-b from-purple-50 to-violet-100 hover:from-violet-100 hover:to-violet-200 border-4 border-purple-400 rounded-3xl p-5 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-4xl">🎯</span>
+            <span class="bg-purple-500 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Mode 5</span>
+          </div>
+          <h3 class="text-xl font-bold text-purple-800">Jumlah Konsonan</h3>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1">Hitung huruf konsonan (selain vokal) seperti B, K, M, T, dll.</p>
+          <div class="mt-4 flex items-center justify-between text-purple-700 font-bold text-sm">
+            <span>Mulai Main</span>
+            <span>➔</span>
+          </div>
+        </div>
+
+        <!-- Mode 6: Gabungan / Super Mode -->
+        <div onclick="startQuizMode('mixed')" class="cursor-pointer bg-gradient-to-r from-orange-400 to-rose-500 text-white rounded-3xl p-5 shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between border-4 border-orange-300">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-4xl">👑</span>
+            <span class="bg-white/30 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Super Mode</span>
+          </div>
+          <h3 class="text-xl font-extrabold">Petualangan Juara</h3>
+          <p class="text-xs sm:text-sm text-orange-100 mt-1">Gabungan semua materi: Suku kata, gambar, vokal, dan konsonan!</p>
+          <div class="mt-4 flex items-center justify-between font-bold text-sm">
+            <span>Mainkan Semua</span>
+            <span>⚡</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="mt-6 flex flex-wrap gap-3 justify-center">
+        <button onclick="openLKPDModal()" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-2xl shadow-md text-sm border-b-4 border-emerald-700 btn-3d">
+          <span>📄</span> Cetak Lembar Kerja Siswa (LKPD)
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. GAMEPLAY VIEW -->
+    <section id="gameView" class="hidden w-full max-w-3xl flex-col items-center">
+      
+      <!-- Top Stage Status -->
+      <div class="w-full flex items-center justify-between mb-3">
+        <button onclick="goToLobby()" class="flex items-center gap-1.5 text-xs sm:text-sm font-bold bg-white border-2 border-slate-300 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-xl transition">
+          <span>⬅️</span> Menu
+        </button>
+
+        <div class="text-center">
+          <span id="quizBadge" class="bg-purple-100 text-purple-700 border-2 border-purple-300 text-xs sm:text-sm font-bold px-3 py-1 rounded-full uppercase">
+            Tebak Suku Kata
+          </span>
+          <div class="text-xs text-slate-500 mt-0.5">Soal <span id="currentQNum">1</span> dari <span id="totalQNum">5</span></div>
+        </div>
+
+        <div class="flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 text-xs sm:text-sm">
+          <span>⚡</span> Skor: <span id="quizScore">0</span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full bg-slate-200 rounded-full h-3.5 mb-5 p-0.5 border border-slate-300 overflow-hidden">
+        <div id="quizProgressBar" class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-300" style="width: 20%"></div>
+      </div>
+
+      <!-- Interactive Question Card -->
+      <div id="questionCard" class="w-full bg-white rounded-3xl border-4 border-slate-200 shadow-xl p-5 sm:p-7 flex flex-col items-center text-center relative overflow-hidden transition-all duration-200">
+        
+        <!-- Instruction Text -->
+        <h3 id="questionPrompt" class="text-lg sm:text-2xl font-bold text-slate-800 mb-4">
+          Lengkapi suku kata berikut!
+        </h3>
+
+        <!-- Illustration Zone (JPG Image) -->
+        <div id="illustrationZone" class="mb-5 flex flex-col items-center justify-center min-h-[130px]"></div>
+
+        <!-- Big Highlight Word Display -->
+        <div id="wordDisplayContainer" class="hidden mb-6 flex items-center justify-center gap-2"></div>
+
+        <!-- Feedback Alert -->
+        <div id="feedbackBanner" class="hidden w-full max-w-md p-3 mb-4 rounded-2xl text-center font-bold text-sm sm:text-base"></div>
+
+        <!-- Options Container -->
+        <div id="optionsContainer" class="w-full grid grid-cols-2 gap-3 sm:gap-4 max-w-lg"></div>
+
+      </div>
+    </section>
+
+    <!-- 3. VICTORY RESULTS VIEW -->
+    <section id="resultsView" class="hidden w-full max-w-md text-center bg-white rounded-3xl border-4 border-amber-300 shadow-2xl p-6 sm:p-8 animate-float">
+      <div class="text-6xl mb-3">🏆</div>
+      <h2 class="text-2xl sm:text-3xl font-black text-amber-800 mb-1">Hebat Sekali!</h2>
+      <p class="text-slate-600 text-sm font-semibold mb-5">Kamu telah menyelesaikan kuis dengan luar biasa!</p>
+
+      <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6">
+        <div class="text-xs uppercase tracking-wider text-amber-700 font-bold mb-1">Skor Kamu</div>
+        <div id="finalScoreDisplay" class="text-4xl font-extrabold text-amber-600">100</div>
+        <div id="scorePraise" class="text-xs text-slate-500 font-medium mt-1">Bintang Cilik Bahasa Indonesia ⭐</div>
+      </div>
+
+      <div class="flex flex-col gap-2.5">
+        <button onclick="restartCurrentMode()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-3 rounded-2xl text-base sm:text-lg shadow-md btn-3d border-b-4 border-emerald-700">
+          🔄 Main Lagi Mode Ini
+        </button>
+        <button onclick="goToLobby()" class="w-full bg-violet-500 hover:bg-violet-600 text-white font-extrabold py-3 rounded-2xl text-base sm:text-lg shadow-md btn-3d border-b-4 border-violet-700">
+          🏠 Pilih Kuis Lain
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================
+       MODAL: LKPD PRINTABLE GENERATOR
+       ======================================================== -->
+  <div id="lkpdModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4">
+    <div id="lkpdModalContainer" class="bg-white rounded-3xl max-w-3xl w-full max-h-[94vh] overflow-y-auto shadow-2xl border-4 border-emerald-400 p-4 sm:p-7 relative flex flex-col">
+      
+      <!-- Top Modal Header (Hidden on print) -->
+      <div class="no-print flex items-center justify-between border-b pb-3 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-3xl">🖨️</span>
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-emerald-800">Lembar Kerja Peserta Didik (LKPD)</h3>
+            <p class="text-xs text-slate-500">Materi: Suku Kata, Huruf Vokal & Huruf Konsonan</p>
+          </div>
+        </div>
+        <button onclick="closeLKPDModal()" class="text-slate-400 hover:text-slate-700 font-black text-2xl w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+          ✕
+        </button>
+      </div>
+
+      <!-- Quick Action Controls (Hidden on print) -->
+      <div class="no-print bg-emerald-50 border border-emerald-200 p-3 rounded-2xl mb-4 flex flex-wrap items-center justify-between gap-2">
+        <span class="text-xs text-emerald-800 font-medium">
+          💡 <strong>Tips:</strong> Klik tombol <strong>Cetak / Simpan PDF</strong>, lalu pada dialog print pilih ukuran kertas <strong>A4</strong>.
+        </span>
+        <button onclick="triggerPrintLKPD()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow btn-3d text-xs sm:text-sm">
+          <span>🖨️</span> Cetak / Simpan PDF
+        </button>
+      </div>
+
+      <!-- LKPD Full Worksheet Print Area -->
+      <div id="lkpdPrintArea" class="bg-white text-slate-900 border-2 border-slate-300 rounded-2xl p-4 sm:p-6 text-left">
+        
+        <!-- Kop LKPD Kelas 1 SD -->
+        <div class="border-b-2 border-slate-900 pb-3 mb-4">
+          <div class="flex justify-between items-start text-xs sm:text-sm font-semibold mb-3">
+            <div class="space-y-1">
+              <div>Nama Siswa : <span class="border-b border-dotted border-slate-700 inline-block w-40 sm:w-56">&nbsp;</span></div>
+              <div>Kelas / No : <span class="border-b border-dotted border-slate-700 inline-block w-24">1 (Satu) / &nbsp;</span></div>
+            </div>
+            <div class="space-y-1 text-right">
+              <div>Hari / Tgl : <span class="border-b border-dotted border-slate-700 inline-block w-32">&nbsp;</span></div>
+              <div>Nilai &bull; Paraf Guru : <span class="border-b border-dotted border-slate-700 inline-block w-20">&nbsp;</span></div>
+            </div>
+          </div>
+
+          <h4 class="text-center font-black text-base sm:text-lg text-slate-900 tracking-wider uppercase">
+            LEMBAR KERJA PESERTA DIDIK (LKPD) KELAS 1 SD
+          </h4>
+          <p class="text-center text-xs font-semibold text-slate-600">
+            Materi: Mengenal Huruf Vokal, Huruf Konsonan, dan Membaca Suku Kata Bergambar
+          </p>
+        </div>
+
+        <!-- Bagian A: Pasangkan Gambar ke Suku Kata / Kata -->
+        <div class="lkpd-task-card mb-5">
+          <p class="font-bold text-xs sm:text-sm text-slate-900 mb-2">
+            A. Tariklah garis lurus dari gambar ke nama kata yang sesuai!
+          </p>
+          
+          <div class="grid grid-cols-2 gap-3 items-center bg-slate-50 p-3 rounded-xl border border-slate-300">
+            <!-- Kolom Gambar -->
+            <div class="space-y-3 text-xs sm:text-sm font-medium">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-amber-200 font-bold flex items-center justify-center text-xs">1</span>
+                <img src="bola.jpg" alt="Bola" class="w-8 h-8 rounded object-cover border border-slate-300 inline-block" onerror="this.src='https://placehold.co/60x60?text=Bola'">
+                <span>[ Gambar Bola ]</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-amber-200 font-bold flex items-center justify-center text-xs">2</span>
+                <img src="kuda.jpg" alt="Kuda" class="w-8 h-8 rounded object-cover border border-slate-300 inline-block" onerror="this.src='https://placehold.co/60x60?text=Kuda'">
+                <span>[ Gambar Kuda ]</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-amber-200 font-bold flex items-center justify-center text-xs">3</span>
+                <img src="meja.jpg" alt="Meja" class="w-8 h-8 rounded object-cover border border-slate-300 inline-block" onerror="this.src='https://placehold.co/60x60?text=Meja'">
+                <span>[ Gambar Meja ]</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-amber-200 font-bold flex items-center justify-center text-xs">4</span>
+                <img src="sapu.jpg" alt="Sapu" class="w-8 h-8 rounded object-cover border border-slate-300 inline-block" onerror="this.src='https://placehold.co/60x60?text=Sapu'">
+                <span>[ Gambar Sapu ]</span>
+              </div>
+            </div>
+
+            <!-- Kolom Kata Target -->
+            <div class="space-y-3 text-xs sm:text-sm font-bold text-slate-800">
+              <div class="p-1 border-b border-dashed border-slate-400">○ &nbsp; k u - d a</div>
+              <div class="p-1 border-b border-dashed border-slate-400">○ &nbsp; s a - p u</div>
+              <div class="p-1 border-b border-dashed border-slate-400">○ &nbsp; b o - l a</div>
+              <div class="p-1 border-b border-dashed border-slate-400">○ &nbsp; m e - j a</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bagian B: Lengkapi Suku Kata -->
+        <div class="lkpd-task-card mb-5">
+          <p class="font-bold text-xs sm:text-sm text-slate-900 mb-2">
+            B. Lengkapi potongan suku kata yang kosong pada kotak di bawah ini!
+          </p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs sm:text-sm">
+            <div class="border border-slate-300 p-2 rounded-lg bg-slate-50 flex items-center gap-2">
+              <img src="topi.jpg" alt="Topi" class="w-7 h-7 rounded object-cover border" onerror="this.src='https://placehold.co/60x60?text=Topi'">
+              <span>1. To - [ .... ]</span>
+            </div>
+            <div class="border border-slate-300 p-2 rounded-lg bg-slate-50 flex items-center gap-2">
+              <img src="bola.jpg" alt="Bola" class="w-7 h-7 rounded object-cover border" onerror="this.src='https://placehold.co/60x60?text=Bola'">
+              <span>2. [ .... ] - la</span>
+            </div>
+            <div class="border border-slate-300 p-2 rounded-lg bg-slate-50 flex items-center gap-2">
+              <img src="ikan.jpg" alt="Ikan" class="w-7 h-7 rounded object-cover border" onerror="this.src='https://placehold.co/60x60?text=Ikan'">
+              <span>3. I - [ .... ]</span>
+            </div>
+            <div class="border border-slate-300 p-2 rounded-lg bg-slate-50 flex items-center gap-2">
+              <img src="kuda.jpg" alt="Kuda" class="w-7 h-7 rounded object-cover border" onerror="this.src='https://placehold.co/60x60?text=Kuda'">
+              <span>4. [ .... ] - da</span>
+            </div>
+            <div class="border border-slate-300 p-2 rounded-lg bg-slate-50 flex items-center gap-2">
+              <img src="meja.jpg" alt="Meja" class="w-7 h-7 rounded object-cover border" onerror="this.src='https://placehold.co/60x60?text=Meja'">
+              <span>5. Me - [ .... ]</span>
+            </div>
+            <div class="border border-slate-300 p-2 rounded-lg bg-slate-50 flex items-center gap-2">
+              <img src="sapu.jpg" alt="Sapu" class="w-7 h-7 rounded object-cover border" onerror="this.src='https://placehold.co/60x60?text=Sapu'">
+              <span>6. Sa - [ .... ]</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bagian C: Hitung Huruf Vokal dan Huruf Konsonan -->
+        <div class="lkpd-task-card">
+          <p class="font-bold text-xs sm:text-sm text-slate-900 mb-2">
+            C. Isilah tabel berikut dengan menghitung jumlah huruf vokal (a, i, u, e, o) dan konsonannya!
+          </p>
+          <table class="w-full text-xs text-left border-collapse border border-slate-400">
+            <thead>
+              <tr class="bg-slate-200">
+                <th class="border border-slate-400 p-1.5 text-center w-8">No</th>
+                <th class="border border-slate-400 p-1.5">Kata</th>
+                <th class="border border-slate-400 p-1.5">Huruf Vokal Apa Saja?</th>
+                <th class="border border-slate-400 p-1.5 text-center">Jumlah Vokal</th>
+                <th class="border border-slate-400 p-1.5 text-center">Jumlah Konsonan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-slate-400 p-1.5 font-bold text-center">1</td>
+                <td class="border border-slate-400 p-1.5 font-bold">B U K U</td>
+                <td class="border border-slate-400 p-1.5">u, u</td>
+                <td class="border border-slate-400 p-1.5 font-semibold text-center">2</td>
+                <td class="border border-slate-400 p-1.5 font-semibold text-center">2</td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-1.5 font-bold text-center">2</td>
+                <td class="border border-slate-400 p-1.5 font-bold">A P E L</td>
+                <td class="border border-slate-400 p-1.5">........................</td>
+                <td class="border border-slate-400 p-1.5 text-center">............</td>
+                <td class="border border-slate-400 p-1.5 text-center">............</td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-1.5 font-bold text-center">3</td>
+                <td class="border border-slate-400 p-1.5 font-bold">K E L I N C I</td>
+                <td class="border border-slate-400 p-1.5">........................</td>
+                <td class="border border-slate-400 p-1.5 text-center">............</td>
+                <td class="border border-slate-400 p-1.5 text-center">............</td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-1.5 font-bold text-center">4</td>
+                <td class="border border-slate-400 p-1.5 font-bold">B A L O N</td>
+                <td class="border border-slate-400 p-1.5">........................</td>
+                <td class="border border-slate-400 p-1.5 text-center">............</td>
+                <td class="border border-slate-400 p-1.5 text-center">............</td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-1.5 font-bold text-center">5</td>
+                <td class="border border-slate-400 p-1.5 font-bold">S E P A T U</td>
+                <td class="border border-slate-400 p-1.5">........................</td>
+                <td class="border border-slate-400 p-1.5 text-center">............</td>
+                <td class="border border-slate-400 p-1.5 text-center">............</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons Modal Footer (Hidden on print) -->
+      <div class="mt-4 flex flex-wrap gap-2.5 justify-end no-print">
+        <button onclick="triggerPrintLKPD()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-2xl flex items-center gap-2 shadow btn-3d text-sm">
+          <span>🖨️</span> Cetak / Simpan PDF
+        </button>
+        <button onclick="closeLKPDModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2.5 rounded-2xl text-sm">
+          Tutup
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500 no-print">
+    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>Media Pembelajaran Interaktif Kelas 1 SD &bull; Bahasa Indonesia</p>
+      <div class="flex items-center gap-3">
+        <span class="hover:text-pink-600 cursor-pointer" onclick="openLKPDModal()">Cetak LKPD</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================
+       JAVASCRIPT APPLICATION LOGIC & SOUND SYNTHESIS
+       ======================================================== -->
+  <script>
+    /* ==========================================================
+       1. WEB AUDIO API SYNTHESIZER
+       ========================================================== */
+    let audioCtx = null;
+    let isSoundMuted = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleAudio() {
+      isSoundMuted = !isSoundMuted;
+      const btn = document.getElementById('soundToggleBtn');
+      btn.innerText = isSoundMuted ? '🔇' : '🔊';
+      if (!isSoundMuted) playSound('click');
+    }
+
+    function playSound(type) {
+      if (isSoundMuted) return;
+      try {
+        initAudio();
+        const now = audioCtx.currentTime;
+
+        if (type === 'click') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(450, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.07);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } 
+        else if (type === 'correct') {
+          [523.25, 659.25, 783.99].forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+            gain.gain.setValueAtTime(0.25, now + idx * 0.09);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.09);
+            osc.stop(now + idx * 0.09 + 0.26);
+          });
+        } 
+        else if (type === 'wrong') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(140, now + 0.22);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.23);
+        }
+        else if (type === 'win') {
+          const chord = [392.00, 523.25, 659.25, 783.99, 1046.50];
+          chord.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.08);
+            gain.gain.setValueAtTime(0.22, now + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.5);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.08);
+            osc.stop(now + i * 0.08 + 0.55);
+          });
+        }
+      } catch (e) {
+        console.warn('Audio note error:', e);
+      }
+    }
+
+    /* ==========================================================
+       2. ASSET GAMBAR LOKAL & QUESTION BANK
+       ========================================================== */
+    function createImgTag(src, alt) {
+      return `<img src="${src}" alt="${alt}" class="w-32 h-32 object-cover rounded-2xl border-4 border-amber-300 shadow-md" onerror="this.src='https://placehold.co/130x130?text=${alt}'">`;
+    }
+
+    const QUIZ_BANK = {
+      syllable: [
+        {
+          prompt: "Lengkapi suku kata yang hilang:",
+          wordDisplay: "BO - [ ... ]",
+          missingPart: "LA",
+          options: ["LA", "DA", "KU", "MA"],
+          icon: createImgTag("bola.jpg", "Bola")
+        },
+        {
+          prompt: "Lengkapi suku kata yang hilang:",
+          wordDisplay: "KU - [ ... ]",
+          missingPart: "DA",
+          options: ["DA", "PA", "RI", "SA"],
+          icon: createImgTag("kuda.jpg", "Kuda")
+        },
+        {
+          prompt: "Lengkapi suku kata yang hilang:",
+          wordDisplay: "ME - [ ... ]",
+          missingPart: "JA",
+          options: ["JA", "TA", "BA", "LU"],
+          icon: createImgTag("meja.jpg", "Meja")
+        },
+        {
+          prompt: "Lengkapi suku kata yang hilang:",
+          wordDisplay: "SA - [ ... ]",
+          missingPart: "PU",
+          options: ["PU", "KU", "TU", "BU"],
+          icon: createImgTag("sapu.jpg", "Sapu")
+        },
+        {
+          prompt: "Lengkapi suku kata yang hilang:",
+          wordDisplay: "TO - [ ... ]",
+          missingPart: "PI",
+          options: ["PI", "SI", "LI", "KI"],
+          icon: createImgTag("topi.jpg", "Topi")
+        }
+      ],
+
+      match_picture: [
+        {
+          prompt: "Apa nama benda pada gambar ini?",
+          icon: createImgTag("bola.jpg", "Bola"),
+          options: ["BO - LA", "TO - PI", "KU - DA", "I - KAN"],
+          answer: "BO - LA"
+        },
+        {
+          prompt: "Apa nama benda pada gambar ini?",
+          icon: createImgTag("kuda.jpg", "Kuda"),
+          options: ["KU - DA", "ME - JA", "SA - PU", "BO - LA"],
+          answer: "KU - DA"
+        },
+        {
+          prompt: "Apa nama benda pada gambar ini?",
+          icon: createImgTag("meja.jpg", "Meja"),
+          options: ["ME - JA", "SA - PU", "TO - PI", "KU - DA"],
+          answer: "ME - JA"
+        },
+        {
+          prompt: "Apa nama benda pada gambar ini?",
+          icon: createImgTag("sapu.jpg", "Sapu"),
+          options: ["SA - PU", "BO - LA", "TO - PI", "ME - JA"],
+          answer: "SA - PU"
+        },
+        {
+          prompt: "Apa nama benda pada gambar ini?",
+          icon: createImgTag("ikan.jpg", "Ikan"),
+          options: ["I - KAN", "KU - DA", "ME - JA", "SA - PU"],
+          answer: "I - KAN"
+        },
+        {
+          prompt: "Apa nama benda pada gambar ini?",
+          icon: createImgTag("topi.jpg", "Topi"),
+          options: ["TO - PI", "BO - LA", "KU - DA", "I - KAN"],
+          answer: "TO - PI"
+        }
+      ],
+
+      vowel_pick: [
+        {
+          prompt: "Manakah huruf vokal pada kata berikut?",
+          word: "B U K U",
+          options: ["U", "B", "K", "D"],
+          answer: "U"
+        },
+        {
+          prompt: "Huruf vokal yang ada pada kata berikut adalah:",
+          word: "A P E L",
+          options: ["A dan E", "P dan L", "Hanya P", "Hanya L"],
+          answer: "A dan E"
+        },
+        {
+          prompt: "Manakah huruf vokal pada kata berikut?",
+          word: "I B U",
+          options: ["I dan U", "Hanya B", "B dan U", "A dan O"],
+          answer: "I dan U"
+        },
+        {
+          prompt: "Manakah huruf vokal pada kata:",
+          word: "M E J A",
+          options: ["E dan A", "M dan J", "Hanya M", "Hanya J"],
+          answer: "E dan A"
+        }
+      ],
+
+      count_vowel: [
+        {
+          prompt: "Berapa JUMLAH huruf vokal pada kata:",
+          word: "K E L I N C I",
+          options: ["3 (tiga)", "2 (dua)", "4 (empat)", "5 (lima)"],
+          answer: "3 (tiga)"
+        },
+        {
+          prompt: "Berapa JUMLAH huruf vokal pada kata:",
+          word: "M A T A",
+          options: ["2 (dua)", "1 (satu)", "3 (tiga)", "4 (empat)"],
+          answer: "2 (dua)"
+        },
+        {
+          prompt: "Berapa JUMLAH huruf vokal pada kata:",
+          word: "S E P A T U",
+          options: ["3 (tiga)", "2 (dua)", "1 (satu)", "4 (empat)"],
+          answer: "3 (tiga)"
+        },
+        {
+          prompt: "Berapa JUMLAH huruf vokal pada kata:",
+          word: "B A L O N",
+          options: ["2 (dua)", "3 (tiga)", "1 (satu)", "4 (empat)"],
+          answer: "2 (dua)"
+        }
+      ],
+
+      count_consonant: [
+        {
+          prompt: "Berapa JUMLAH huruf konsonan pada kata:",
+          word: "B A L O N",
+          options: ["3 (tiga)", "2 (dua)", "4 (empat)", "1 (satu)"],
+          answer: "3 (tiga)"
+        },
+        {
+          prompt: "Berapa JUMLAH huruf konsonan pada kata:",
+          word: "M A T A",
+          options: ["2 (dua)", "1 (satu)", "3 (tiga)", "4 (empat)"],
+          answer: "2 (dua)"
+        },
+        {
+          prompt: "Berapa JUMLAH huruf konsonan pada kata:",
+          word: "B U K U",
+          options: ["2 (dua)", "3 (tiga)", "4 (empat)", "1 (satu)"],
+          answer: "2 (dua)"
+        },
+        {
+          prompt: "Berapa JUMLAH huruf konsonan pada kata:",
+          word: "K E L I N C I",
+          options: ["4 (empat)", "3 (tiga)", "5 (lima)", "2 (dua)"],
+          answer: "4 (empat)"
+        }
+      ]
+    };
+
+    /* ==========================================================
+       3. GAMEPLAY CONTROLLER
+       ========================================================== */
+    let globalTotalStars = 0;
+    let currentQuizMode = 'syllable';
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let currentScore = 0;
+    let canSelectOption = true;
+
+    function goToLobby() {
+      playSound('click');
+      document.getElementById('lobbyView').classList.remove('hidden');
+      document.getElementById('gameView').classList.add('hidden');
+      document.getElementById('resultsView').classList.add('hidden');
+    }
+
+    function startQuizMode(modeKey) {
+      playSound('click');
+      currentQuizMode = modeKey;
+      currentQuestionIndex = 0;
+      currentScore = 0;
+      canSelectOption = true;
+
+      if (modeKey === 'mixed') {
+        currentQuestions = [
+          ...QUIZ_BANK.syllable.slice(0, 2),
+          ...QUIZ_BANK.match_picture.slice(0, 2),
+          ...QUIZ_BANK.vowel_pick.slice(0, 2),
+          ...QUIZ_BANK.count_vowel.slice(0, 1),
+          ...QUIZ_BANK.count_consonant.slice(0, 1)
+        ].sort(() => Math.random() - 0.5);
+      } else {
+        currentQuestions = [...QUIZ_BANK[modeKey]].sort(() => Math.random() - 0.5);
+      }
+
+      document.getElementById('lobbyView').classList.add('hidden');
+      document.getElementById('resultsView').classList.add('hidden');
+      document.getElementById('gameView').classList.remove('hidden');
+
+      renderQuestion();
+    }
+
+    function restartCurrentMode() {
+      startQuizMode(currentQuizMode);
+    }
+
+    function renderQuestion() {
+      canSelectOption = true;
+      const q = currentQuestions[currentQuestionIndex];
+      const totalQ = currentQuestions.length;
+
+      document.getElementById('currentQNum').innerText = currentQuestionIndex + 1;
+      document.getElementById('totalQNum').innerText = totalQ;
+      document.getElementById('quizScore').innerText = currentScore;
+      document.getElementById('quizProgressBar').style.width = `${((currentQuestionIndex) / totalQ) * 100}%`;
+
+      const badgeTitles = {
+        syllable: 'Tebak Suku Kata',
+        match_picture: 'Pasang Gambar & Kata',
+        vowel_pick: 'Tebak Huruf Vokal',
+        count_vowel: 'Hitung Huruf Vokal',
+        count_consonant: 'Hitung Huruf Konsonan',
+        mixed: 'Petualangan Campur'
+      };
+      document.getElementById('quizBadge').innerText = badgeTitles[currentQuizMode] || 'Kuis Seru';
+
+      const feedback = document.getElementById('feedbackBanner');
+      feedback.classList.add('hidden');
+      feedback.className = "hidden w-full max-w-md p-3 mb-4 rounded-2xl text-center font-bold text-sm sm:text-base";
+
+      document.getElementById('questionPrompt').innerText = q.prompt;
+
+      // Render Gambar
+      const illustZone = document.getElementById('illustrationZone');
+      illustZone.innerHTML = '';
+      if (q.icon) {
+        illustZone.innerHTML = `<div class="p-2 bg-amber-100/80 rounded-3xl border-4 border-amber-300 transform hover:scale-105 transition">${q.icon}</div>`;
+      }
+
+      // Word Letters rendering
+      const wordContainer = document.getElementById('wordDisplayContainer');
+      wordContainer.innerHTML = '';
+      if (q.word) {
+        wordContainer.classList.remove('hidden');
+        const letters = q.word.split(' ');
+        letters.forEach(char => {
+          const tile = document.createElement('div');
+          tile.className = "w-11 h-13 sm:w-14 sm:h-16 bg-gradient-to-b from-indigo-50 to-indigo-100 border-b-4 border-indigo-400 rounded-2xl flex items-center justify-center text-xl sm:text-2xl font-black text-indigo-800 shadow-md";
+          tile.innerText = char;
+          wordContainer.appendChild(tile);
+        });
+      } else if (q.wordDisplay) {
+        wordContainer.classList.remove('hidden');
+        const displayTag = document.createElement('div');
+        displayTag.className = "text-2xl sm:text-3xl font-black tracking-widest text-slate-800 bg-amber-100 px-6 py-2 rounded-2xl border-2 border-amber-300";
+        displayTag.innerText = q.wordDisplay;
+        wordContainer.appendChild(displayTag);
+      } else {
+        wordContainer.classList.add('hidden');
+      }
+
+      // Options Rendering
+      const optsContainer = document.getElementById('optionsContainer');
+      optsContainer.innerHTML = '';
+      const correctAns = q.answer || q.missingPart;
+      const options = [...q.options].sort(() => Math.random() - 0.5);
+
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "btn-3d w-full py-4 px-4 bg-white hover:bg-amber-50 active:bg-amber-100 border-4 border-amber-300 rounded-2xl text-slate-800 font-black text-lg sm:text-xl tracking-wide flex items-center justify-center transition";
+        btn.innerText = opt;
+        btn.onclick = () => handleAnswerSelect(opt, correctAns, btn);
+        optsContainer.appendChild(btn);
+      });
+    }
+
+    function handleAnswerSelect(selected, correct, btnElem) {
+      if (!canSelectOption) return;
+      canSelectOption = false;
+
+      const isCorrect = (selected === correct);
+      const feedback = document.getElementById('feedbackBanner');
+      feedback.classList.remove('hidden');
+
+      if (isCorrect) {
+        playSound('correct');
+        confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } });
+
+        btnElem.classList.remove('bg-white', 'border-amber-300');
+        btnElem.classList.add('bg-emerald-400', 'text-white', 'border-emerald-600');
+
+        feedback.classList.add('bg-emerald-100', 'border-2', 'border-emerald-400', 'text-emerald-800');
+        feedback.innerHTML = `🎉 <strong>PINTAR SEKALI!</strong> Jawabanmu Benar! ⭐`;
+
+        currentScore += 20;
+        globalTotalStars += 1;
+        document.getElementById('globalScoreText').innerText = globalTotalStars;
+      } else {
+        playSound('wrong');
+        btnElem.classList.remove('bg-white', 'border-amber-300');
+        btnElem.classList.add('bg-rose-400', 'text-white', 'border-rose-600');
+
+        const allBtns = document.querySelectorAll('#optionsContainer button');
+        allBtns.forEach(b => {
+          if (b.innerText === correct) {
+            b.classList.remove('bg-white', 'border-amber-300');
+            b.classList.add('bg-emerald-300', 'border-emerald-500', 'text-emerald-900');
+          }
+        });
+
+        feedback.classList.add('bg-rose-100', 'border-2', 'border-rose-400', 'text-rose-800');
+        feedback.innerHTML = `😊 <strong>HAMPIR!</strong> Jawaban yang tepat: <strong>${correct}</strong>`;
+      }
+
+      setTimeout(() => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentQuestions.length) {
+          renderQuestion();
+        } else {
+          showQuizResults();
+        }
+      }, 1500);
+    }
+
+    function showQuizResults() {
+      playSound('win');
+      confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+
+      document.getElementById('gameView').classList.add('hidden');
+      const resView = document.getElementById('resultsView');
+      resView.classList.remove('hidden');
+
+      document.getElementById('finalScoreDisplay').innerText = currentScore;
+      const praise = document.getElementById('scorePraise');
+      if (currentScore >= 80) {
+        praise.innerText = "Luar Biasa! Kamu Juara Membaca Kelas 1! 🌟";
+      } else if (currentScore >= 40) {
+        praise.innerText = "Bagus Sekali! Teruslah Berlatih Membaca! 📚";
+      } else {
+        praise.innerText = "Tetap Semangat! Ayo Coba Main Sekali Lagi! 💪";
+      }
+    }
+
+    /* ==========================================================
+       4. LKPD MODAL & PRINT HANDLERS
+       ========================================================== */
+    function openLKPDModal() {
+      playSound('click');
+      document.getElementById('lkpdModal').classList.remove('hidden');
+    }
+
+    function closeLKPDModal() {
+      playSound('click');
+      document.getElementById('lkpdModal').classList.add('hidden');
+    }
+
+    function triggerPrintLKPD() {
+      const modalContainer = document.getElementById('lkpdModalContainer');
+      if (modalContainer) {
+        modalContainer.scrollTop = 0;
+      }
+      window.scrollTo(0, 0);
+      window.print();
+    }
+
+    // Aktifkan konteks audio Web API pada sentuhan pertama
+    window.addEventListener('click', function unlockAudioOnce() {
+      initAudio();
+      window.removeEventListener('click', unlockAudioOnce);
+    }, { once: true });
+  </script>
+</body>
+</html>
